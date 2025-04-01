@@ -31,29 +31,43 @@ def sync_bsp_files():
         if not is_bsp_repo(repo['name']):
             continue
             
+        print(f"\nProcessing repository: {repo['name']}")
         repo_url = repo['clone_url']
         series = get_series_name(repo['name'])
         temp_dir = os.path.join(base_dir, 'temp', repo['name'])
         
-        # Clone repository
-        Repo.clone_from(repo_url, temp_dir)
+        print(f"Cloning from {repo_url} to {temp_dir}")
+        try:
+            # Clone repository
+            # if os.path.exists(temp_dir):
+                # shutil.rmtree(temp_dir)
+            Repo.clone_from(repo_url, temp_dir)
+        except Exception as e:
+            print(f"Error cloning repository: {e}")
+            continue
         
         # Create series directory if it doesn't exist
         series_dir = os.path.join(base_dir, series)
+        print(f"Creating series directory: {series_dir}")
         os.makedirs(series_dir, exist_ok=True)
         
-        # Copy device and stddriver directories
-        for dir_name in ['device', 'stddriver']:
+        # Copy device and StdDriver directories
+        for dir_name in ['Device', 'StdDriver']:
             src_dir = os.path.join(temp_dir, 'Library', dir_name)
             dst_dir = os.path.join(series_dir, dir_name)
             
+            print(f"Checking directory: {src_dir}")
             if os.path.exists(src_dir):
-                if os.path.exists(dst_dir):
-                    shutil.rmtree(dst_dir)
+                print(f"Copying {dir_name} from {src_dir} to {dst_dir}")
+                # if os.path.exists(dst_dir):
+                    # shutil.rmtree(dst_dir)
                 shutil.copytree(src_dir, dst_dir)
+            else:
+                print(f"Warning: Source directory not found: {src_dir}")
         
         # Clean up
-        shutil.rmtree(temp_dir)
+        print(f"Cleaning up temporary directory: {temp_dir}")
+        # shutil.rmtree(temp_dir)
 
 if __name__ == '__main__':
     sync_bsp_files()
